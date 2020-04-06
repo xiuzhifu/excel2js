@@ -1,0 +1,23 @@
+{
+	"name": "excel2js",
+	"version": "0.0.1",
+	"author": "anmeng",
+	"description": "Excel转js",
+	"keywords": [
+		"javascript"
+	],
+	"bin": {
+		"excel2js": "./excel2js.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://path/to/url"
+	},
+	"license": "MIT",
+	"scripts": {
+		"start": "node excel2js.js"
+	},
+	"dependencies": {
+		"xlsx": "^0.14.0"
+	}
+}
