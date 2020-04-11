@@ -118,33 +118,42 @@ function createObj(C, workbook, sheetname) {
 	return objlist
 }
 
-function genJSConfig(jsobj, filename, configData) {
-	let s = ''
-	let left, right, gap
-	if (jsobj.length == 1) {
-		left = ''
-		right = ''
-		gap = '\n    '
-	} else {
-		left = '\n    {'
-		right = '\n    },'
-		gap = '\n      '
-	}
 
-	for(let i = 0; i < jsobj.length; i++) {
-		s += left
-		for (var j in jsobj[i]) {
-			s += gap
-			let value = jsobj[i][j]
-			if (typeof value == 'string' && value != 'false' && value != 'true') {
-				value = '\'' + jsobj[i][j] + '\''
-			}
-			s += j + ': ' + value +','
-		}
-		s += right
+
+function genJSConfig(jsobjs, filename, configData) {
+  let s = ''
+  let left, right, gap
+  if (jsobjs.length == 1) {
+    left = ''
+    right = ''
+    gap = '\n    '
+  } else {
+    left = '\n    {'
+    right = '\n    },'
+    gap = '\n      '
+  }
+	for(let i = 0; i < jsobjs.length; i++) {
+    const jsobj = jsobjs[i]
+    const keys = Object.keys(jsobj)
+    if (keys.length == 1 && keys[0] == 'array') {
+      const value = `\n    '${jsobj.array}',`
+      s += value
+    } else {
+      s += left
+      for (let j = 0; j < keys.length; j++) {
+        s += gap
+        const key = keys[j]
+        let value = jsobj[key]
+        if (typeof value == 'string' && value != 'false' && value != 'true') {
+          value = '\'' + jsobj[key] + '\''
+        }
+        s += `${key}: ${value},`
+      }
+      s += right
+    }
 	}
 	
-	if (jsobj.length == 1) {
+	if (jsobjs.length == 1) {
 		return `${configData}  ${filename}: {${s}\n  },\n`
 	} else {
 		return `${configData}  ${filename}: [${s}\n  ],\n`
