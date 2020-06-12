@@ -79,7 +79,51 @@ function createClass(workbook, sheetname) {
   return c
 }
 
-function createObj(C, workbook, sheetname) {
+function newObj(c, values) {
+  const obj = {}
+  for(let i = 0; i < c.length; i++) {
+    let key = c[i] 
+    let value = values[i]
+    if (!value) {
+      value = ''
+    }
+    let k
+    let v
+    if (key[key.length - 1] == ']') {
+      let i = key.indexOf('[')
+      if (i == -1) throw new Error('can not found [')
+      k = key.substring(0, i)
+      for(let j = i + 1; j < key.length -1; j++) {
+        let t = key[j]
+        switch (t) {
+          case 's':
+            v = String(value)
+            break
+          case 'n':
+            if (value == '') {
+              value = 0
+            }
+            v = Number(value)
+            break
+          case 'a':
+            if (value == '') {
+              v = '[]'
+            } else {
+              v = '[' + value + ']'
+            }
+            break
+        }
+      }
+    } else {
+      k = key
+      v = value
+    }
+    obj[k] = v
+  }
+  return obj
+}
+
+function createObj(c, workbook, sheetname) {
 	var worksheet = workbook.Sheets[sheetname]
 	var objlist = []
 	var currentrow = 2
@@ -88,11 +132,7 @@ function createObj(C, workbook, sheetname) {
 		if(z[0] === '!') {
 			// 处理最后一行
 			if (values.length > 0) {
-				if (C.length != values.length) throw new Error(sheetname + " at Line :" + row)
-				let obj = {}
-				for(let i = 0; i < values.length; i++) {
-					obj[C[i]] = values[i]
-				}
+				let obj = newObj(c, values)
 				values = []
 				objlist.push(obj)
 			}
@@ -105,14 +145,11 @@ function createObj(C, workbook, sheetname) {
 		var row = parseInt(z.substring(lastChar + 1))
 		if (row != currentrow) {
 			currentrow = row
-      let obj = {}
-      for(let i = 0; i < values.length; i++) {
-        obj[C[i]] = values[i]
-      }
+      let obj = newObj(c, values)
 			values = []
       objlist.push(obj)
 		}
-		var value = worksheet[z].v
+    const value = worksheet[z].v
 		values.push(value)	
 	}
 	return objlist
@@ -144,7 +181,7 @@ function genJSConfig(jsobjs, filename, configData) {
         s += gap
         const key = keys[j]
         let value = jsobj[key]
-        if (typeof value == 'string' && value != 'false' && value != 'true') {
+        if (typeof value == 'string' && value != 'false' && value != 'true' && value[0] != '[') {
           value = '\'' + jsobj[key] + '\''
         }
         s += `${key}: ${value},`
@@ -166,7 +203,7 @@ function genConfig(dirpath, files) {
   let configData = 'const Conf = {\n'
   let i
   for(i = 0; i < files.length; i++) {
-    let workbook = xlsx.readFile(path.join(dirpath, files[i]), {cellStyles:true, bookFiles:true})
+    let workbook = xlsx.readFile(path.join(dirpath, files[i]), {cellStyles:true, bookFiles:true, sheetStubs: true})
     let sheetNames = workbook.SheetNames;
     let C = createClass(workbook, sheetNames[0])
     let objs = createObj(C, workbook, sheetNames[0])
